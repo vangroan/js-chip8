@@ -70,6 +70,9 @@ module.exports = function() {
     opCode[0x6] = opLoadVXNN;
     opCode[0x7] = opAddNNtoVX;
     opCode[0x8] = handleArithmetic;
+    opCode[0xA] = opSetI;
+    opCode[0xB] = opJmpV0;
+    opCode[0xC] = opRnd;
 
     // 0x8**X
     opCodeArithmetic[0x0] = opLoadVYtoVX;
@@ -78,6 +81,7 @@ module.exports = function() {
     opCodeArithmetic[0x3] = opSetVXtoVXxorVY;
     opCodeArithmetic[0x4] = opAddVYtoVXCarry;
     opCodeArithmetic[0x5] = opSubVYfromVXBorrow;
+    opCodeArithmetic[0x6] = opShiftVXRight;
 
     // ========
     // Op Codes
@@ -212,8 +216,55 @@ module.exports = function() {
     function opSubVYfromVXBorrow() {
         var x = (op & 0x0F00) >> 8;
         var y = (op & 0x00F0) >> 4;
-        v[0xF] = v[y] > v[x] ? 1 : 0;
+        v[0xF] = v[y] > v[x] ? 0 : 1;
         v[x] = (v[x] - v[y]) & 0xFF;
+
+        pc += 2;
+    }
+
+    /**
+     * Shift VX right by one. VF is set to least significant bit before shift
+     * 0x8XY6
+     */
+    function opShiftVXRight() {
+        var x = (op & 0x0F00) >> 8;
+        v[0xF] = v[x] & 0x01;
+        v[x] >>= 1;
+        pc += 2;
+    }
+
+    /**
+     * 0x8XY7
+     */
+
+    /**
+     * 0x8XYE
+     */
+
+     /**
+      * Sets I to NNN
+      * 0xANNN
+      */
+     function opSetI() {
+         I = op & 0x0FFF;
+         pc += 2;
+     }
+
+    /**
+     * Jump to address NNN plus V0
+     * 0xBNNN
+     */
+    function opJmpV0() {
+        pc = (op & 0x0FFF) + v[0];
+    }
+
+    /**
+     * Set VX to a random number and mask it by doing AND with NN
+     * 0xCXNN
+     */
+    function opRnd() {
+        v[(op & 0x0F00) >> 8] = Math.random() & (op & 0x00FF);
+        pc += 2;
     }
 
     /**

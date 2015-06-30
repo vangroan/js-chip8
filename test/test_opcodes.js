@@ -281,14 +281,42 @@ describe('Chip8 OpCode', function() {
 
     describe('8XY5', function(){
 
+        describe('subtracting large from small', function(){
+            before(function(){
+                var program = [
+                    0x60, 0x28, // 0x6028 : Load 40 into V0
+                    0x61, 0x82, // 0x6182 : Load 130 into V1
+                    0x80, 0x15 // 0x8015 : Subtract V1 from V0
+                ];
+                c.loadProgram(program);
+                c.step();
+                c.step();
+                c.step();
+            });
+
+            after(function(){
+                c.reset();
+            });
+
+            it('should subtract 130 from 40 to wrap around to 166, set borrow to 0', function(){
+                test.value(c.getDataRegister(0)).isEqualTo(0xA6);
+            });
+
+            it('borrow register must be 0', function(){
+                test.value(c.getDataRegister(0xF)).isEqualTo(0);
+            });
+        });
+
+    });
+
+    describe('8XY6', function(){
+
         before(function(){
             var program = [
-                0x60, 0x28, // 0x6082 : Load 130 into V0
-                0x61, 0x82, // 0x6128 : Load 40 into V1
-                0x80, 0x15 // 0x8015 : Subtract V1 from V0
+                0x60, 0x0B, // 0x600B : Load 11 into V0
+                0x80, 0x06 // 0x8006 : Shift V0 right by one
             ];
             c.loadProgram(program);
-            c.step();
             c.step();
             c.step();
         });
@@ -297,14 +325,48 @@ describe('Chip8 OpCode', function() {
             c.reset();
         });
 
-        it('should subtract 130 from 40 to wrap around to 166', function(){
-            test.value(c.getDataRegister(0)).isEqualTo(0xA6);
+        it('should shift 11 right to get 5', function(){
+            test.value(c.getDataRegister(0)).isEqualTo(0x05);
         });
 
-        it('carry flag must be set', function(){
+        it('should set VF to 1', function(){
             test.value(c.getDataRegister(0xF)).isEqualTo(1);
         });
 
+    });
+
+    describe('8XY7', function(){
+
+    });
+
+    describe('ANNN', function(){
+        it('should set register I to 0x300', function(){
+            var program = [
+                0xA3, 0x00 // 0xA300 : set I to 0x300
+            ];
+            c.loadProgram(program);
+            c.step();
+
+            test.value(c.getAddressRegister()).isEqualTo(0x300);
+
+            c.reset();
+        });
+    });
+
+    describe('BNNN', function(){
+        it('should jump to address 0x300 + 0xF', function(){
+            var program = [
+                0x60, 0x0F, // 0x600F : Load 0xF into V0
+                0xB3, 0x00 // 0xB300 : Jump to 0x300 + V0
+            ];
+            c.loadProgram(program);
+            c.step();
+            c.step();
+
+            test.value(c.getProgramCounter()).isEqualTo(0x030F);
+
+            c.reset();
+        });
     });
 
 });
