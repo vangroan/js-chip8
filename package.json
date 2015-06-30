@@ -1,8 +1,9 @@
 {
-  "name": "node-chip8",
+  "name": "js-chip8",
   "version": "0.0.0",
   "description": "Chip-8 interpreter",
   "main": "index.js",
+  "repository": "https://github.com/vangroan/js-chip8.git",
   "scripts": {
     "test": "mocha test"
   },
