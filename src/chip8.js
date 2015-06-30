@@ -77,6 +77,7 @@ module.exports = function() {
     opCodeArithmetic[0x2] = opSetVXtoVXandVY;
     opCodeArithmetic[0x3] = opSetVXtoVXxorVY;
     opCodeArithmetic[0x4] = opAddVYtoVXCarry;
+    opCodeArithmetic[0x5] = opSubVYfromVXBorrow;
 
     // ========
     // Op Codes
@@ -202,6 +203,17 @@ module.exports = function() {
         v[x] = result & 0xFF;
 
         pc += 2;
+    }
+
+    /**
+     * Subtract VY from VX. VF is set to 1 when there is a borrow
+     * 0x8XY5
+     */
+    function opSubVYfromVXBorrow() {
+        var x = (op & 0x0F00) >> 8;
+        var y = (op & 0x00F0) >> 4;
+        v[0xF] = v[y] > v[x] ? 1 : 0;
+        v[x] = (v[x] - v[y]) & 0xFF;
     }
 
     /**

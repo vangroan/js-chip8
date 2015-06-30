@@ -279,4 +279,32 @@ describe('Chip8 OpCode', function() {
 
     });
 
+    describe('8XY5', function(){
+
+        before(function(){
+            var program = [
+                0x60, 0x28, // 0x6082 : Load 130 into V0
+                0x61, 0x82, // 0x6128 : Load 40 into V1
+                0x80, 0x15 // 0x8015 : Subtract V1 from V0
+            ];
+            c.loadProgram(program);
+            c.step();
+            c.step();
+            c.step();
+        });
+
+        after(function(){
+            c.reset();
+        });
+
+        it('should subtract 130 from 40 to wrap around to 166', function(){
+            test.value(c.getDataRegister(0)).isEqualTo(0xA6);
+        });
+
+        it('carry flag must be set', function(){
+            test.value(c.getDataRegister(0xF)).isEqualTo(1);
+        });
+
+    });
+
 });
