@@ -12,9 +12,9 @@ var fs = require('fs');
 
     var scanner = new asm.Scanner();
     var tokenizer = new asm.Tokenizer(scanner, { verbose : verbose });
-    var assembler = new asm.Assembler(tokenizer);
+    var parser = new asm.Parser(tokenizer);
 
     scanner.setSource(buffer.toString());
-    assembler.parse();
+    parser.parse();
 
 })();

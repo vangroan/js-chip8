@@ -72,7 +72,7 @@ Scanner.prototype.get = function() {
     if (this.isDone())
         throw Error('Scanner is done');
 
-    if (this.position === this.src.length - 1)
+    if (this.pos === this.src.length - 1)
         this._isDone = true;
 
     if (this.char !== null && contains(tokens.NEWLINE, this.char.getChar())) {
@@ -144,9 +144,6 @@ Tokenizer.prototype.get = function() {
     var scanChar = this.scanChar.bind(this);
     var isDone = this.isDone.bind(this);
 
-    // Initialize
-    scanChar();
-
     // Ignore Whitespace
     while (contains(tokens.WHITESPACE, this.c1.getChar()) && !isDone()) {
         scanChar();
@@ -176,8 +173,41 @@ Tokenizer.prototype.get = function() {
                     break;
                 }
             }
+            scanChar();
             return token;
         }
+    }
+
+    // Single Characters
+    if (contains(tokens.SINGLE_CHAR, this.c1.getChar())) {
+        var token = new Token(tokens.TYPES.SINGLE_CHARACTER, this.c1.getPosition(), this.c1.getLine(), this.c1.getColumn());
+        token.append(this.c1);
+        scanChar();
+        return token;
+    }
+
+    // IDENTIFIER_START
+    if (contains(tokens.IDENTIFIER_START, this.c1.getChar())) {
+        var token = new Token(tokens.TYPES.IDENTIFIER, this.c1.getPosition(), this.c1.getLine(), this.c1.getColumn());
+        token.append(this.c1);
+        scanChar();
+        while(contains(tokens.IDENTIFIER_CONTAINS, this.c1.getChar()) && !isDone()) {
+            token.append(this.c1);
+            scanChar();
+        }
+        return token;
+    }
+
+    // Number literal
+    if (contains(tokens.NUMBER_LITERAL_START, this.c1.getChar())) {
+        var token = new Token(tokens.TYPES.NUMBER, this.c1.getPosition(), this.c1.getLine(), this.c1.getColumn());
+        token.append(this.c1);
+        scanChar();
+        while(contains(tokens.NUMBER_LITERAL_CONTAINS, this.c1.getChar()) && !isDone()) {
+            token.append(this.c1);
+            scanChar();
+        }
+        return token;
     }
 
     if (isDone())
@@ -192,7 +222,7 @@ Tokenizer.prototype.get = function() {
  * @constructor
  * @param {Scanner} scanner
  */
-var Assembler = exports.Assembler = function(tokenizer, options) {
+var Parser = exports.Parser = function(tokenizer, options) {
     this.tokenizer = tokenizer;
 
     /** Store labels to be processed later */
@@ -200,15 +230,23 @@ var Assembler = exports.Assembler = function(tokenizer, options) {
 
     options = options || {};
     this.verbose = !!options['verbose'] || false;
+    this.tokens = [];
 }
 
-Assembler.prototype.statement = function(tokens) {
-
+Parser.prototype.statement = function(tokens) {
+    
 }
 
-Assembler.prototype.parse = function() {
+Parser.prototype.parse = function() {
+
+    // Initialize
+    this.tokenizer.scanChar();
+
     while (!this.tokenizer.isDone()) {
         var token = this.tokenizer.get();
-        console.log('[' + token.line + ', ' + token.column + ']' + token.type + ' : ' + token.toString());
+        console.log('[' + token.line + ':' + token.column + ']' + token.type + ' : ' + token.toString());
+        this.tokens.push(token);
     }
+
+    this.statement(this.tokens);
 }
