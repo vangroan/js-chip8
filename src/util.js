@@ -1,3 +1,6 @@
+// src/util.js
+
+'use strict';
 
 /**
  * @param {Array} a
@@ -19,4 +22,11 @@ exports.dumpByteArray = function(bytes) {
         sb.push('\n');
     }
     return sb.join('');
+}
+
+exports.arrayContains = function(arr, el) {
+    for (var i=0; i < arr.length; i++)
+        if (arr[i] === el)
+            return true;
+    return false;
 }
