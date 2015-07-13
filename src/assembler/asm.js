@@ -2,7 +2,9 @@
 
 'use strict';
 
+var ast = require('./ast');
 var tokens = require('./tokens');
+var opcodes = require('./opcodes');
 var util = require('../util');
 var contains = util.arrayContains;
 
@@ -107,6 +109,10 @@ Token.prototype.append = function(char) {
         throw Error('Token can only append instances of Character');
     this._chars.push(char);
     this._dirty = true;
+}
+
+Token.prototype.getCharAt = function(index) {
+    return this._chars[index];
 }
 
 Token.prototype.toString = function() {
@@ -231,10 +237,80 @@ var Parser = exports.Parser = function(tokenizer, options) {
     options = options || {};
     this.verbose = !!options['verbose'] || false;
     this.tokens = [];
+    this.pt = 0;
+
+    /** @type {Token} */
+    this.token = null;
+
+    this.root = new ast.ProgramNode();
 }
 
-Parser.prototype.statement = function(tokens) {
-    
+Parser.prototype.readToken = function() {
+    this.token = this.tokens[this.pt];
+    this.pt++;
+}
+
+Parser.prototype.isDone = function() {
+    return (this.tokens.length - 1) === this.pt || typeof this.token === 'undefined';
+}
+
+Parser.prototype._load = function() {
+
+    var node = new ast.LoadNode(this.token);
+
+    // Load must be followed by two tokens
+    this.readToken();
+    var left = this.token;
+
+    this.readToken();
+    var delim = this.token;
+
+    this.readToken();
+    var right = this.token;
+
+    if (left.getCharAt(0).getChar().toUpperCase() === opcodes.DATA_REGISTER_PREFIX) {
+        console.log('Load instruction');
+        // If the left is a V register and the right is a number literal
+        node.setLeft(new ast.DataRegisterNode(left));
+
+        if (right.type === tokens.TYPES.NUMBER) {
+            node.setRight(new ast.NumberLiteralNode(right));
+            this.root.addChild(node);
+            return;
+        }
+
+    }
+
+
+}
+
+Parser.prototype._keyword = function() {
+    switch(this.token.toString().toUpperCase()) {
+        case opcodes.OPCODES.LD:
+            this._load();
+        break;
+
+        default:
+            throw Error('Unknown keyword ' + this.token.toString());
+    }
+}
+
+Parser.prototype.statement = function() {
+
+    if (typeof this.token === 'undefined' || this.token === null)
+        throw Error('Token has not been read');
+
+    // Comments are ignored
+    if (this.token.type === tokens.TYPES.COMMENT) {
+        this.readToken();
+        return;
+    }
+
+    if (contains(opcodes.KEYWORDS, this.token.toString().toUpperCase())) {
+        this._keyword();
+    }
+
+    this.readToken();
 }
 
 Parser.prototype.parse = function() {
@@ -248,5 +324,15 @@ Parser.prototype.parse = function() {
         this.tokens.push(token);
     }
 
-    this.statement(this.tokens);
+    this.readToken();
+    while(!this.isDone()) {
+        this.statement();
+    }
+
+    console.log(this.root);
+
+}
+
+var Assembler = exports.Assembler = function() {
+
 }
