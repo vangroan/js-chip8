@@ -3,4 +3,8 @@
 Javascript Chip-8 Emulator
 ==========================
 
-.. _CHIP-8 Wikipedia: http://en.wikipedia.org/wiki/CHIP-8
+--------
+Resouces
+--------
+
+`Chip-8 Wikiepdia Article <http://en.wikipedia.rg/wiki/CHIP-8>`_
