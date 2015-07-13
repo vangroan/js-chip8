@@ -268,6 +268,42 @@ module.exports = function() {
     }
 
     /**
+     * Draw sprite located at I on screen at coordinate (VX, VY). N is the number of bytes
+     * to read from memory. The pixels are contained in the bits and XORed to the screen.
+     * If pixels are erased, VF is set to 1, otherwise 0
+     * 0xDXYN
+     */
+    function opDraw() {
+
+        var n = op & 0x000F;
+        var coordx = (op & 0x0F00) >> 8;
+        var coordy = (op & 0x00F0) >> 4;
+        var y = coordy;
+
+        for (var i = 0; i < n; i++) {
+            var s = mem[I + i];
+
+            for (var x = 0; x < 8; x++) {
+
+                pixel = (s >> x) & 0x1;
+                var tx = (coordx + x) % SCREEN_WIDTH;
+                var ty = (coordy + y) % SCREEN_HEIGHT;
+
+                if (pixel ^ graphics[tx][ty] === 1)
+                    v[0xF] = 1;
+                else
+                    v[0xF] = 0;
+
+                graphics[tx][ty] ^= pixel;
+            }
+
+            y++;
+        }
+
+        pc +=2;
+    }
+
+    /**
      * Do nothing
      */
     function opNoOp() {
