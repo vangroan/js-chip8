@@ -1,7 +1,30 @@
 
 exports.KEYWORDS = [
+    'CLS',
+    'RET',
+    'SYS',
+    'JP',
+    'CALL',
+    'SE',
+    'SNE',
+    'SUB',
+    'SUBN',
+    'ADD',
+    'OR',
+    'XOR',
+    'AND',
+    'SHR',
+    'SHL',
     'LD',
-    'V'
+    'RND',
+    'DRW',
+    'SKP',
+    'SKNP',
+
+    'V',
+    'I',
+    'K',
+    'DT'
 ]
 
 exports.DATA_REGISTER_PREFIX = 'V';
